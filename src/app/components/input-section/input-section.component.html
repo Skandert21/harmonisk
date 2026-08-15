@@ -1,0 +1,134 @@
+<section class="input-panel">
+  <div class="panel-header">
+    <p class="eyebrow">Entrada</p>
+    <h2>Construye tu progresión</h2>
+  </div>
+
+  <!-- 1. Tonalidad Global -->
+<div class="global-context">
+    <label class="input-label">Tonalidad base</label>
+    <div class="select-group">
+      
+      <!-- Llenamos las notas dinámicamente -->
+      <select class="custom-select" [(ngModel)]="tonicaGlobal">
+        @for (nota of notasCromaticas; track $index) {
+          <option [value]="nota">{{ nota }}</option>
+        }
+      </select>
+      <!-- Los values ya están en inglés (major/minor) para que Tonal los entienda directo -->
+      <select class="custom-select" [(ngModel)]="escalaGlobal">
+        <option value="major">Mayor</option>
+        <option value="minor">Menor</option>
+      </select>
+      
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- 2. Pista de Acordes Guardados -->
+  <div class="sequence-section">
+    <div class="track-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+      <label class="input-label" style="margin: 0;">Secuencia armónica</label>
+      <span class="sub-label" style="color: var(--accent);">
+        {{ progresionArray.length }} / 4
+      </span>
+    </div>
+    
+    <div class="chord-track">
+      <!-- El bloque @for moderno de Angular iterando el arreglo -->
+      @for (chord of progresionArray; track $index) {
+        <div class="chord-badge">
+          <span class="chord-name">{{ chord }}</span>
+          <button class="remove-btn" type="button" (click)="eliminarAcorde($index)" title="Eliminar acorde">&times;</button>
+        </div>
+      } @empty {
+        <div class="empty-placeholder">
+          <span>Aún no hay acordes. Añade uno usando el armador inferior.</span>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- 3. Armador de Acordes Avanzado -->
+  <div class="chord-builder">
+    <label class="input-label">Construir o Autocompletar Acorde</label>
+    <div class="builder-container">
+      
+  <!-- A. Plantilla Rápida -->
+  <div class="template-bar">
+    <span class="sub-label">Plantilla:</span>
+    <select class="custom-select small-select" [(ngModel)]="templateRoot">
+      <option value="" disabled>Raíz</option>
+      @for (nota of notasCromaticas; track $index) {
+        <option [value]="nota">{{ nota }}</option>
+      }
+    </select>
+
+    <select class="custom-select small-select" [(ngModel)]="templateType">
+      <option value="" disabled>Tipo</option>
+      <option value="M">Mayor (M)</option>
+      <option value="m">Menor (m)</option>
+      <option value="dim">Disminuido (dim)</option>
+      <option value="aug">Aumentado (aug)</option>
+      <option value="7">Dominante (7)</option>
+      <option value="maj7">Mayor 7 (maj7)</option>
+      <option value="m7">Menor 7 (m7)</option>
+      <option value="m7b5">Semi-disminuido (m7b5)</option>
+      <option value="dim7">Disminuido 7 (dim7)</option>
+    </select>
+    
+    <button class="apply-template-btn" type="button" (click)="aplicarPlantilla()" title="Llenar notas automáticamente">
+      Llenar slots
+    </button>
+  </div>
+
+  <hr class="divider-light">
+
+  <!-- B. Slots manuales (6 Notas iteradas con @for) -->
+  <span class="sub-label">Notas del acorde (mínimo 3):</span>
+  <div class="slots-container">
+    
+    @for (slot of slots; track $index) {
+      <select 
+        class="slot-select" 
+        [class.mandatory]="$index < 3"
+        [(ngModel)]="slots[$index]"
+        (change)="detectarAcorde()">
+        
+        <option value="">-</option>
+        @for (nota of notasCromaticas; track idx; let idx = $index) {
+          <option [value]="nota">{{ nota }}</option>
+        }
+      </select>
+    }
+
+  </div>
+
+  <!-- C. Detección en vivo y Botón Añadir -->
+  <div class="detection-bar">
+    <div class="detected-chord">
+      <span class="detect-label">Detectado:</span>
+      <span class="detect-value" [style.color]="acordeDetectado === 'Desconocido' ? '#E63946' : 'var(--text)'">
+        {{ acordeDetectado || '---' }}
+      </span> 
+    </div>
+    <button 
+      class="add-chord-btn" 
+      type="button" 
+      (click)="agregarAcorde()" 
+      [disabled]="progresionArray.length >= 4 || !acordeDetectado || acordeDetectado === 'Desconocido'">
+      + Añadir a la pista
+    </button>
+  </div>
+
+</div>
+  </div>
+
+  <div class="actions">
+<button class="analyze-btn" type="button" (click)="ejecutarAnalisis()" [disabled]="progresionArray.length === 0">
+    Analizar Progresión
+  </button>
+  </div> 
+</section>
+

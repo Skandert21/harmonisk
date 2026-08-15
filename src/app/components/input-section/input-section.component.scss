@@ -1,0 +1,359 @@
+/* --- ESTRUCTURA BASE DEL PANEL (Ya definida) --- */
+.input-panel {
+  padding: 22px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: #D6DAE2;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
+  gap: 20px; /* Separación uniforme entre las secciones internas */
+}
+
+.panel-header {
+  margin-bottom: 4px;
+}
+
+.eyebrow {
+  margin: 0 0 6px;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--subtext);
+  font-weight: 600;
+}
+
+h2 {
+  margin: 0;
+  font-size: clamp(1.25rem, 2vw, 1.8rem);
+  color: var(--text);
+  font-weight: 800;
+}
+
+.input-label {
+  display: block;
+  margin: 0 0 8px;
+  color: var(--text);
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 0;
+}
+
+/* --- SELECTORES PERSONALIZADOS --- */
+.select-group {
+  display: flex;
+  gap: 12px;
+}
+
+.custom-select {
+  appearance: none;
+  background-color: white;
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s ease;
+  /* Icono de flecha SVG integrado en el CSS */
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%236c757d%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px top 50%;
+  background-size: 10px auto;
+  padding-right: 32px;
+}
+
+.custom-select:focus {
+  border-color: #E63946;
+  background-color: white;
+  box-shadow: 0 0 0 3px rgba(230, 57, 70, 0.15);
+}
+
+.flex-grow {
+  flex: 1;
+}
+
+/* --- PISTA DE ACORDES (CHORD TRACK) --- */
+.chord-track {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 16px;
+  background: var(--sidebar-bg);
+  border: 1px dashed rgba(108, 117, 125, 0.4);
+  border-radius: 12px;
+  min-height: 70px;
+  align-items: center;
+}
+
+.chord-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #ffffff;
+  border: 1px solid var(--border);
+  padding: 6px 12px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  animation: slideIn 0.2s ease-out;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.chord-name {
+  font-weight: 700;
+  color: var(--text);
+  font-size: 0.95rem;
+}
+
+.remove-btn {
+  background: transparent;
+  border: none;
+  color: var(--subtext);
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 4px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.remove-btn:hover {
+  color: #E63946;
+  background: rgba(230, 57, 70, 0.1);
+}
+
+.empty-placeholder {
+  color: var(--subtext);
+  font-size: 0.85rem;
+  font-style: italic;
+  width: 100%;
+  text-align: center;
+}
+
+/* --- CONTROLES DEL ARMADOR --- */
+.builder-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  background: var(--sidebar-bg);
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.add-chord-btn {
+  border: 1px solid #E63946;
+  background: rgba(230, 57, 70, 0.08);
+  color: #E63946;
+  font-weight: 700;
+  border-radius: 10px;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.add-chord-btn:hover {
+  background: #E63946;
+  color: white;
+  box-shadow: 0 4px 12px rgba(230, 57, 70, 0.2);
+}
+
+/* --- BOTÓN ANALIZAR PRINCIPAL --- */
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+.analyze-btn {
+  border: none;
+  border-radius: 12px;
+  padding: 12px 24px;
+  background: #E63946;
+  color: white;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  box-shadow: 0 8px 20px rgba(230, 57, 70, 0.25);
+}
+
+.analyze-btn:hover {
+  transform: translateY(-2px);
+  background: #d90429;
+  box-shadow: 0 10px 24px rgba(230, 57, 70, 0.35);
+}
+
+/* --- RESPONSIVIDAD --- */
+@media (max-width: 640px) {
+  .builder-controls {
+    flex-direction: column;
+  }
+  .add-chord-btn {
+    width: 100%;
+  }
+}
+
+/* --- CONTENEDOR DEL ARMADOR AVANZADO --- */
+.builder-container {
+  background: var(--sidebar-bg);
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sub-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--subtext);
+  letter-spacing: 0.05em;
+  display: block;
+}
+
+.divider-light {
+  border: none;
+  border-top: 1px dashed rgba(108, 117, 125, 0.2);
+  margin: 0;
+}
+
+/* --- PLANTILLA RÁPIDA --- */
+.template-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.template-bar .sub-label {
+  margin-right: 4px;
+}
+
+.small-select {
+  padding: 8px 12px;
+  font-size: 0.85rem;
+  border-radius: 8px;
+  min-width: 100px;
+  background: white;
+}
+
+.apply-template-btn {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    border-color: #E63946;
+    color: #E63946;
+    background: rgba(230, 57, 70, 0.05);
+  }
+}
+
+/* --- SLOTS DE NOTAS (6 HUECOS) --- */
+.slots-container {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.slot-select {
+  appearance: none;
+  background-color: white;
+  border: 2px solid var(--border);
+  color: var(--text);
+  font-weight: 700;
+  font-size: 1rem;
+  text-align: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s ease;
+  /* Quitamos la flechita para que parezca un botón/casilla limpia */
+  background-image: none;
+  padding: 0;
+}
+
+/* Destacamos los 3 obligatorios con un borde sutil más fuerte o un fondo */
+.slot-select.mandatory {
+  border-color: rgba(108, 117, 125, 0.4);
+  background-color: #ffffff;
+}
+
+.slot-select:focus, .slot-select:not([value=""]):not(:focus) {
+  border-color: #E63946;
+  color: #E63946;
+   
+}
+
+/* --- BARRA DE DETECCIÓN --- */
+.detection-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #ffffff;
+  padding: 10px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  margin-top: 4px;
+}
+
+.detected-chord {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.detect-label {
+  font-size: 0.75rem;
+  color: var(--subtext);
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.detect-value {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.add-chord-btn {
+  background: #E63946;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(230, 57, 70, 0.2);
+  transition: all 0.2s;
+
+  &:hover {
+    background: #d90429;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(230, 57, 70, 0.3);
+  }
+}

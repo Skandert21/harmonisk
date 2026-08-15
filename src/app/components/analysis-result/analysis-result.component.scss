@@ -1,0 +1,163 @@
+.result-panel {
+  padding: 22px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: #444D5F;
+  color: #ffffff;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.panel-header {
+  margin-bottom: 18px;
+}
+
+.eyebrow {
+  margin: 0 0 6px;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #cbd5e1; /* Gris claro de alta visibilidad */
+  font-weight: 700;
+}
+
+h2, h3 {
+  margin: 0 0 10px;
+  color: #ffffff;
+  font-weight: 800;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(120px, 1fr));
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.summary-grid > div {
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.35); /* Fondo interno translúcido oscuro para separar tarjetas */
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.label {
+  display: block;
+  margin-bottom: 6px;
+  color: #94a3b8;
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+}
+
+strong {
+  font-size: 1.05rem;
+  color: #ffffff; /* Blanco puro para destacar datos clave */
+}
+
+.details {
+  color: #f8fafc;
+}
+
+.details p,
+.details ul {
+  margin: 0;
+  color: #e2e8f0; /* Texto secundario claro, totalmente legible */
+}
+
+.details ul {
+  padding-left: 18px;
+  display: grid;
+  gap: 6px;
+}
+
+.empty-state {
+  display: grid;
+  gap: 12px;
+  min-height: 220px;
+  place-content: center;
+  place-items: center; /* Esto fuerza al SVG a centrarse en su bloque */
+  text-align: center;
+  color: #e2e8f0; 
+}
+
+/* --- TOOLTIP INTERACTIVO (MASCOTA) --- */
+.tooltip-container {
+  position: relative;
+  display: inline-flex;
+  cursor: help;
+}
+
+.help-icon {
+  background: rgba(230, 57, 70, 0.15); /* Tono coral sutil */
+  color: #E63946;
+  border-radius: 50%;
+  padding: 0px 5px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  transition: all 0.2s;
+
+  &:hover {
+    background: #E63946;
+    color: white;
+  }
+}
+
+.tooltip-box {
+  visibility: hidden;
+  opacity: 0;
+  position: absolute;
+  bottom: 100%; /* Inicia un poco más abajo */
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1e293b; /* Fondo oscuro del tooltip */
+  color: #e2e8f0;
+  padding: 14px;
+  border-radius: 12px;
+  width: max-content;
+  max-width: 320px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  border: 1px solid rgba(255,255,255,0.1);
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  z-index: 100;
+  
+  /* Animación suave */
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  margin-bottom: 5px;
+
+  /* La flechita (triángulo) apuntando hacia abajo */
+  &::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -6px;
+    border-width: 6px;
+    border-style: solid;
+    border-color: #1e293b transparent transparent transparent;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.8rem;
+    line-height: 1.5;
+  }
+
+  .mascot-img {
+    width: 45px;
+    height: 45px;
+    object-fit: contain;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.05); /* Fondo sutil por si el PNG es transparente */
+    flex-shrink: 0; /* Evita que la imagen se aplaste si hay mucho texto */
+  }
+}
+
+/* Efecto al pasar el ratón */
+.tooltip-container:hover .tooltip-box {
+  visibility: visible;
+  opacity: 1;
+  bottom: 130%; /* La nube flota hacia arriba */
+}
