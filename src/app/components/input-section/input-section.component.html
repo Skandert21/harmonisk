@@ -109,15 +109,37 @@
   <div class="detection-bar">
     <div class="detected-chord">
       <span class="detect-label">Detectado:</span>
-      <span class="detect-value" [style.color]="acordeDetectado === 'Desconocido' ? '#E63946' : 'var(--text)'">
-        {{ acordeDetectado || '---' }}
-      </span> 
+      
+      @if (opcionesAcordeDetectado.length === 0) {
+        <!-- Mostramos texto estático si está vacío o es desconocido -->
+        <span 
+          class="detect-value" 
+          [style.color]="acordeSeleccionado === 'Desconocido' ? '#E63946' : 'var(--text)'">
+          {{ acordeSeleccionado || '---' }}
+        </span> 
+      } @else {
+        <!-- Mostramos el SELECT solo cuando hay opciones válidas -->
+        <select 
+          class="detect-value chord-select"
+          [(ngModel)]="acordeSeleccionado"
+          style="background: transparent; border: 1px solid var(--border-color); color: var(--text); padding: 2px 5px; border-radius: 4px; font-weight: bold; cursor: pointer;">
+          
+          @for (opcion of opcionesAcordeDetectado; track opcion) {
+            <option [value]="opcion" style="color: black;">
+              {{ opcion }}
+            </option>
+          }
+
+        </select>
+      }
+
     </div>
+    
     <button 
       class="add-chord-btn" 
       type="button" 
       (click)="agregarAcorde()" 
-      [disabled]="progresionArray.length >= 4 || !acordeDetectado || acordeDetectado === 'Desconocido'">
+      [disabled]="progresionArray.length >= 4 || !acordeSeleccionado || acordeSeleccionado === 'Desconocido'">
       + Añadir a la pista
     </button>
   </div>
