@@ -253,20 +253,22 @@ h2 {
 }
 
 .apply-template-btn {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  color: var(--text);
+  background: white;
+  border: 1px solid  #E63946;
+  color:  #E63946;
   font-size: 0.8rem;
   font-weight: 600;
   padding: 8px 12px;
   border-radius: 8px;
+ 
   cursor: pointer;
   transition: all 0.2s;
 
   &:hover {
     border-color: #E63946;
-    color: #E63946;
-    background: rgba(230, 57, 70, 0.05);
+    background-color: #E63946;
+    color: white;
+    
   }
 }
 
@@ -355,5 +357,74 @@ h2 {
     background: #d90429;
     transform: translateY(-1px);
     box-shadow: 0 6px 16px rgba(230, 57, 70, 0.3);
+  }
+}
+
+.slots-container {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+
+  /* Estilo base para tus selectores de notas (los cuadritos blancos) */
+  .slot-select {
+    flex: 1;
+    min-width: 45px;
+    height: 50px;
+    background: #ffffff;
+    border: 2px solid transparent;
+    border-radius: 12px;
+    text-align: center;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1e293b;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease;
+
+    /* Destacar los primeros 3 (mínimo requerido para un acorde) */
+    &.mandatory {
+      border-color: rgba(230, 57, 70, 0.3);
+    }
+
+    &:focus {
+      outline: none;
+      border-color: #E63946;
+      box-shadow: 0 0 0 3px rgba(230, 57, 70, 0.15);
+    }
+  }
+
+  /* Botón de limpiar adaptado a la misma geometría de los slots */
+  .clear-slots-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 50px; /* Misma altura exacta que los slots */
+    width: 50px;  /* Ancho simétrico tipo cuadrado redondeado */
+    background: #ffffff;
+    border: 1px solid #E63946;
+    border-radius: 12px;
+    color: #94a3b8;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+
+    svg {
+      transition: transform 0.2s ease;
+      color: #E63946;
+    }
+
+    &:hover {
+      background-color: #E63946;
+      border-color: #E63946;
+      color: #ffffff;
+      
+      svg {
+        transform: scale(1.1); /* Ligero zoom animado en el icono al pasar el mouse */
+        color: #ffffff;
+      }
+    }
   }
 }

@@ -96,3 +96,48 @@ h1 {
     width: 100%;
   }
 }
+ 
+
+/* ESTILOS PARA LOS BOTONES DEL SELECTOR DE MOTOR */
+.selectores {
+  display: flex;
+  gap: 12px; /* Margen automático entre los botones */
+  align-items: center;
+
+  button {
+    background: #0f1115; /* Fondo igual al del navbar */
+    color: #ffffff; /* Letras blancas */
+    border: 1px solid #ffffff; /* Borde blanco */
+    border-radius: 24px; /* Borde bien redondeado tipo píldora */
+    padding: 8px 18px; /* Padding simétrico */
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.25s ease;
+
+    /* Efecto hover (al pasar el ratón o hacer click) */
+    &:hover {
+      background: #E63946; /* El color salmón/coral que ya usas en brand-mark */
+      border-color: #E63946;
+      color: #ffffff;
+    }
+
+    /* Estado Seleccionado (suave) */
+    &.active {
+      /* Un salmón translúcido muy elegante para indicar que está activo sin gritar visualmente */
+      background: rgba(230, 57, 70, 0.15); 
+      border-color: rgba(230, 57, 70, 0.5);
+      color: #ffb3ba; /* Un tono salmón pastel muy suave para el texto */
+      pointer-events: none; /* Evita que se le haga hover si ya está seleccionado */
+    }
+  }
+}
+
+ .disabled {
+  opacity: 0.5;
+  pointer-events: none;
+ }
+
+/* ... aquí tu @media (max-width: 640px) ... */

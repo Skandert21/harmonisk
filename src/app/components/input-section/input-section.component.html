@@ -16,10 +16,14 @@
         }
       </select>
       <!-- Los values ya están en inglés (major/minor) para que Tonal los entienda directo -->
-      <select class="custom-select" [(ngModel)]="escalaGlobal">
-        <option value="major">Mayor</option>
-        <option value="minor">Menor</option>
-      </select>
+     <select class="custom-select" [(ngModel)]="escalaGlobal" (change)="ejecutarAnalisis()">
+  @for (escala of todasLasEscalas; track escala) {
+    <option [value]="escala">
+      <!-- Mostramos el nombre capitalizado para que se vea mejor -->
+      {{ escala | titlecase }}
+    </option>
+  }
+</select>
       
     </div>
   </div>
@@ -31,7 +35,7 @@
     <div class="track-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
       <label class="input-label" style="margin: 0;">Secuencia armónica</label>
       <span class="sub-label" style="color: var(--accent);">
-        {{ progresionArray.length }} / 4
+        {{ progresionArray.length }} / 8
       </span>
     </div>
     
@@ -59,7 +63,7 @@
   <div class="template-bar">
     <span class="sub-label">Plantilla:</span>
     <select class="custom-select small-select" [(ngModel)]="templateRoot">
-      <option value="" disabled>Raíz</option>
+      <option value="" disabled>Fundamental</option>
       @for (nota of notasCromaticas; track $index) {
         <option [value]="nota">{{ nota }}</option>
       }
@@ -78,9 +82,15 @@
       <option value="dim7">Disminuido 7 (dim7)</option>
     </select>
     
-    <button class="apply-template-btn" type="button" (click)="aplicarPlantilla()" title="Llenar notas automáticamente">
-      Llenar slots
-    </button>
+   <button class="apply-template-btn" type="button" (click)="aplicarPlantilla()" title="Llenar notas automáticamente">
+  <!-- Aquí insertamos el icono de plus -->
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="12" y1="5" x2="12" y2="19"></line>
+    <line x1="5" y1="12" x2="19" y2="12"></line>
+  </svg>
+  
+  
+</button>
   </div>
 
   <hr class="divider-light">
@@ -88,22 +98,30 @@
   <!-- B. Slots manuales (6 Notas iteradas con @for) -->
   <span class="sub-label">Notas del acorde (mínimo 3):</span>
   <div class="slots-container">
-    
-    @for (slot of slots; track $index) {
-      <select 
-        class="slot-select" 
-        [class.mandatory]="$index < 3"
-        [(ngModel)]="slots[$index]"
-        (change)="detectarAcorde()">
-        
-        <option value="">-</option>
-        @for (nota of notasCromaticas; track idx; let idx = $index) {
-          <option [value]="nota">{{ nota }}</option>
-        }
-      </select>
-    }
+  
+  <!-- Bucle optimizado con los selects estilizados -->
+  @for (slot of slots; track $index) {
+    <select 
+      class="slot-select" 
+      [class.mandatory]="$index < 3"
+      [(ngModel)]="slots[$index]"
+      (change)="detectarAcorde()">
+      <option value="">-</option>
+      @for (nota of notasCromaticas; track idx; let idx = $index) {
+        <option [value]="nota">{{ nota }}</option>
+      }
+    </select>
+  }
+  
+  <!-- Botón de eliminar integrado correctamente al final -->
+  <button class="clear-slots-btn" type="button" (click)="limpiarSlots()" title="Limpiar todos los slots">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="3 6 5 6 21 6"></polyline>
+      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+    </svg>
+  </button>
 
-  </div>
+</div>
 
   <!-- C. Detección en vivo y Botón Añadir -->
   <div class="detection-bar">
@@ -139,7 +157,7 @@
       class="add-chord-btn" 
       type="button" 
       (click)="agregarAcorde()" 
-      [disabled]="progresionArray.length >= 4 || !acordeSeleccionado || acordeSeleccionado === 'Desconocido'">
+      [disabled]="progresionArray.length >= 8 || !acordeSeleccionado || acordeSeleccionado === 'Desconocido'">
       + Añadir a la pista
     </button>
   </div>

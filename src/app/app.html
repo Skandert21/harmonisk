@@ -1,2 +1,29 @@
+<!-- El Navbar siempre está visible arriba -->
+<app-navbar></app-navbar>
+
+<!-- El contenedor principal donde cambia el contenido -->
+<main class="contenedor-principal">
   
-<router-outlet />
+  @switch (mode$ | async) {
+    
+    @case ('TRADICIONAL') {
+      <!-- Estos son los componentes que ya tienes listos -->
+      <app-input-section></app-input-section>
+      <app-analysis-result></app-analysis-result>
+    }
+
+    @case ('BARTOK') {
+      <!-- Aquí pondrás los nuevos cuando los crees. Por ahora un placeholder: -->
+      <div class="construccion">
+        <h2>Modo Ejes de Bartók</h2>
+        <p>Motor geométrico en construcción...</p>
+      </div>
+    }
+
+    @default {
+      <app-input-section></app-input-section>
+      <app-analysis-result></app-analysis-result>
+    }
+  }
+
+</main>

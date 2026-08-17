@@ -1,3 +1,29 @@
+@if (mostrarAviso) {
+  <div class="disclaimer-overlay" [class.fade-out]="animandoCierre" (click)="cerrarAviso()">
+    
+    <div class="disclaimer-content" (click)="$event.stopPropagation()">
+      <div class="icon-container">
+        <!-- Icono más sutil y limpio -->
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="rgba(255, 255, 255, 0.6)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+      </div>
+
+      <h2>Aviso Importante</h2>
+      <p>
+        <strong>Harmonisk</strong> busca ofrecerte una explicación lógica y teórica para tus progresiones musicales. Sin embargo, el análisis armónico depende del contexto y la subjetividad, por lo que el sistema <strong>puede presentar inconsistencias</strong> en progresiones ambiguas.
+      </p>
+      <p>
+        Es ideal utilizar esta herramienta como un apoyo analítico de la mano con tu propio oído.
+      </p>
+      
+      <button class="understand-btn" (click)="cerrarAviso()">Continuar al analizador</button>
+    </div>
+    
+  </div>
+}
 <div class="app-shell">
   <app-navbar />
 

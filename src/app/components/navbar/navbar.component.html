@@ -10,5 +10,23 @@
   <div class="nav-meta">
    <!-- <span class="status-badge">Badge</span>
     <button class="action-btn" type="button">Button</button>-->
+   <div class="selectores">
+    <button 
+      (click)="cambiarMotor('TRADICIONAL')" 
+      [class.active]="(mode$ | async) === 'TRADICIONAL'">
+      Tradicional
+    </button>
+    
+    <button disabled class="disabled"
+      (click)="cambiarMotor('BARTOK')" 
+      [class.active]="(mode$ | async) === 'BARTOK'">
+     Bartok
+    </button>
+     <button disabled class="disabled"
+      (click)="cambiarMotor('BARTOK')" 
+      [class.active]="(mode$ | async) === 'BARTOK'">
+      Coltrane
+    </button>
+  </div>
   </div>
 </nav>

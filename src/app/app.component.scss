@@ -26,3 +26,89 @@ background-image: url("data:image/svg+xml,%3Csvg width='80' height='88' viewBox=
     grid-template-columns: 1fr;
   }
 }
+
+.disclaimer-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  /* Fondo exacto que pediste con 95% de opacidad */
+  background: rgba(15, 17, 21, 0.95); 
+  backdrop-filter: blur(12px); /* Difumina lo que esté atrás */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  
+  opacity: 1;
+  transition: opacity 0.5s ease-out;
+
+  &.fade-out {
+    opacity: 0;
+    pointer-events: none;
+    
+    .disclaimer-content {
+      transform: translateY(15px); /* Se desliza suavemente hacia abajo al desaparecer */
+      opacity: 0;
+    }
+  }
+
+  .disclaimer-content {
+    max-width: 600px;
+    width: 90%;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    
+    /* Animación de entrada/salida del texto */
+    transform: translateY(0);
+    opacity: 1;
+    transition: all 0.5s ease-out;
+
+    .icon-container {
+      margin-bottom: 24px;
+    }
+
+    h2 {
+      color: #ffffff;
+      font-size: 2.2rem;
+      margin-bottom: 24px;
+      font-weight: 300; /* Letra más delgada para un look más refinado */
+      letter-spacing: -0.5px;
+    }
+
+    p {
+      color: rgba(255, 255, 255, 0.6); /* Gris claro semitransparente */
+      font-size: 1.15rem;
+      line-height: 1.8;
+      margin-bottom: 20px;
+
+      strong {
+        color: #ffffff;
+        font-weight: 600;
+      }
+    }
+
+    .understand-btn {
+      margin-top: 30px;
+      background: transparent;
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      padding: 12px 40px;
+      border-radius: 30px; /* Botón tipo "píldora" */
+      font-size: 1rem;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+
+      &:hover {
+        background: #E63946;
+        color: #fff; /* El texto toma el color de tu fondo */
+        border-color: #E63946;
+      }
+    }
+  }
+}
