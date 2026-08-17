@@ -497,8 +497,8 @@ analizarProgresionContextual(progresion: string[], tonica: string, tipoEscala: s
         }
       }
 
-     // B) CONSTANTES ESTRUCTURALES
-      let rachaConstante = 1; // Un acorde siempre es una racha de 1 de sí mismo
+     // B) CONSTANTES ESTRUCTURALES (Con filtro diatónico de protección)
+      let rachaConstante = 1; 
       for (let i = 1; i < resultado.length; i++) {
         const cAnterior = Chord.get(resultado[i-1].cifrado);
         const cActual = Chord.get(resultado[i].cifrado);
@@ -509,15 +509,17 @@ analizarProgresionContextual(progresion: string[], tonica: string, tipoEscala: s
         const esValido = cActual.quality && cActual.quality !== 'Unknown' && cActual.type;
         const esMismoTipo = cActual.type === cAnterior.type;
         const esRaizDiferente = chActual !== chAnterior;
-        // Evitamos sobrescribir la armonía cuartal
         const noEsCuartal = !resultado[i].funcionDiatonica.includes('Cuartal'); 
 
-        const esConstante = esValido && esMismoTipo && esRaizDiferente && noEsCuartal;
+        // NUEVO: Verificamos que el acorde actual NO sea diatónico a la escala base
+        const noEsDiatonico = !this.acordePerteneceAEscala(resultado[i].cifrado, tonica, tipoEscala);
+
+        // La constante solo es válida si cumple las reglas de paralelismo Y además es ajeno a la escala
+        const esConstante = esValido && esMismoTipo && esRaizDiferente && noEsCuartal && noEsDiatonico;
 
         if (esConstante) rachaConstante++;
 
         if (!esConstante || i === resultado.length - 1) {
-       
           if (rachaConstante >= 3) {
             const fin = esConstante ? i : i - 1;
             const inicio = fin - rachaConstante + 1;
