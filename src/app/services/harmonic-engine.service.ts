@@ -395,15 +395,15 @@ analizarProgresionContextual(progresion: string[], tonica: string, tipoEscala: s
                   }
                 }
               }
-              else if (diff === 2) {
-                // 2 semitonos hacia abajo (Un tono entero) = ¡El Backdoor Dominant! (Ej: Bb7 -> C)
+              else if (diff === 10) { 
+                // ¡CORREGIDO! 10 semitonos hacia abajo (equivale a subir 1 tono entero) = ¡El verdadero Backdoor Dominant! (Ej: Bb7 -> C)
                 observacionesAcorde.push(`Resolución de Backdoor Dominant: El ${memoria.cifradoAnterior} resolvió hacia el ${nombreAcorde} mediante una sustitución de subdominante menor.`);
                 
                 if (memoria.indiceAnterior !== null) {
                   resultado[memoria.indiceAnterior].funcionDiatonica = `Backdoor Dominant (Resolvió a ${nombreAcorde})`;
-                  resultado[memoria.indiceAnterior].explicacion = 'Acorde dominante construido sobre el séptimo grado bemol ($bVII7$). Aunque tiene estructura de dominante, funciona armónicamente como una subdominante menor que sube un tono para resolver a la tónica, aportando un color sofisticado y "jazzero".';
+                  resultado[memoria.indiceAnterior].explicacion = 'Acorde dominante construido sobre el séptimo grado bemol (bVII7). Aunque tiene estructura de dominante, funciona armónicamente como una subdominante menor que sube un tono para resolver a la tónica, aportando un color sofisticado.';
                 }
-              } 
+              }
               else if (diff === 1) {
                 // 1 semitono hacia abajo = Sustituto Tritonal / SubV7 (Ej: Db7 -> C)
                 observacionesAcorde.push(`Resolución de SubV7: El ${memoria.cifradoAnterior} resolvió cromáticamente hacia el ${nombreAcorde}.`);
