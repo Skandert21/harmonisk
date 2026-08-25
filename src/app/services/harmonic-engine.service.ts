@@ -1,15 +1,17 @@
 import { Injectable } from '@angular/core';
 import { Progression, Chord, Note, Scale } from 'tonal';
 import { BehaviorSubject } from 'rxjs';
-
+import { FUNCIONES_MAYOR, FUNCIONES_MENOR, obtenerFuncionModalDinamica, ESCALAS_PARALELAS, TRADUCTOR_NOMBRES_MODOS } from './diatonic-rules';
+import { acordePerteneceAEscala, esRaizDiatonica as calcularRaizDiatonica } from './music-math.service';
 export interface AnalisisAcorde {
   cifrado: string;
   gradoRomano: string;
   funcionDiatonica: string;
   notas: string[];
-  intervalos: string[]; // ¡Nuevo!
-  explicacion: string;  // ¡Nuevo texto explicativo!
+  intervalos: string[];  
+  explicacion: string;  
   observaciones: string[];
+  advertencias?: string[];
 }
 
 interface MemoriaArmonica {
@@ -31,43 +33,8 @@ export class HarmonicEngineService {
   private resultadosSource = new BehaviorSubject<AnalisisAcorde[]>([]);
   public resultados$ = this.resultadosSource.asObservable();
 
-  // Diccionario mejorado
-// --- DICCIONARIOS DIATÓNICOS COMPLETOS ---
-  private funcionesMayor: { [grado: string]: string } = {
-    'I': 'Tónica', 'IM': 'Tónica', 'Imaj7': 'Tónica',
-    'II': 'Supertónica (Subdominante)', 'IIm': 'Supertónica (Subdominante)', 'IIm7': 'Supertónica (Subdominante)',
-    'III': 'Mediante (Tónica Secundaria)', 'IIIm': 'Mediante (Tónica Secundaria)', 'IIIm7': 'Mediante (Tónica Secundaria)',
-    'IV': 'Subdominante', 'IVM': 'Subdominante', 'IVmaj7': 'Subdominante',
-    'V': 'Dominante', 'VM': 'Dominante', 'V7': 'Dominante', 
-    'VI': 'Submediante (Tónica Relativa)', 'VIm': 'Submediante (Tónica Relativa)', 'VIm7': 'Submediante (Tónica Relativa)',
-    'VIIo': 'Sensible', 'VIIdim': 'Sensible', 'VIIm7b5': 'Sensible'
-  };
 
-  private funcionesMenor: { [grado: string]: string } = {
-    'I': 'Tónica Menor', 'Im': 'Tónica Menor', 'Im7': 'Tónica Menor', 'Im(maj7)': 'Tónica Menor',
-    'IIo': 'Supertónica (Subdominante)', 'IIdim': 'Supertónica (Subdominante)', 'IIm7b5': 'Supertónica (Subdominante)',
-    'bIII': 'Mediante (Relativa Mayor)', 'bIIIM': 'Mediante (Relativa Mayor)', 'bIIImaj7': 'Mediante (Relativa Mayor)',
-    'IV': 'Subdominante Menor', 'IVm': 'Subdominante Menor', 'IVm7': 'Subdominante Menor',
-    'V': 'Dominante Menor', 'Vm': 'Dominante Menor', 'Vm7': 'Dominante Menor', // Eólico
-    'V7': 'Dominante Principal (Armónica)', 'VM': 'Dominante Principal (Armónica)', // Menor Armónica
-    'bVI': 'Submediante', 'bVIM': 'Submediante', 'bVImaj7': 'Submediante',
-    'bVII': 'Subtónica', 'bVII7': 'Subtónica', 'bVIIM': 'Subtónica', // Eólico
-    'VIIo': 'Sensible Disminuida', 'VIIdim': 'Sensible Disminuida', 'VIIdim7': 'Sensible Disminuida' // Menor Armónica
-  };
-
-   private acordePerteneceAEscala(nombreAcorde: string, tonicaEscala: string, tipoEscala: string): boolean {
-    const notasAcorde = Chord.get(nombreAcorde).notes;
-    const notasEscala = Scale.get(`${tonicaEscala} ${tipoEscala}`).notes;
-
-    if (!notasAcorde.length || !notasEscala.length) return false;
-
-    // Convertimos a chroma (0-11) para que matemática pura determine la pertenencia
-    const chromasAcorde = notasAcorde.map(n => Note.chroma(n)).filter(n => n !== undefined);
-    const chromasEscala = notasEscala.map(n => Note.chroma(n)).filter(n => n !== undefined);
-
-    // Retorna TRUE si TODAS las notas del acorde están dentro de la escala
-    return chromasAcorde.every(chroma => chromasEscala.includes(chroma));
-  }
+ 
   constructor() { }
 analizarProgresionContextual(progresion: string[], tonica: string, tipoEscala: string) {
     const resultado: AnalisisAcorde[] = [];
@@ -100,156 +67,120 @@ analizarProgresionContextual(progresion: string[], tonica: string, tipoEscala: s
 
       // A) ¿ES DIATÓNICO A LA ESCALA PRINCIPAL?
      
-      const esDiatonico = this.acordePerteneceAEscala(nombreAcorde, tonica, tipoEscala);
+      const esDiatonico =  acordePerteneceAEscala(nombreAcorde, tonica, tipoEscala);
 
       if (esDiatonico) {
         // 1. Buscamos primero si estamos en los modos clásicos que tienen diccionario propio
         if (tipoEscala === 'major') {
-          funcionBase = this.funcionesMayor[grado] || this.funcionesMayor[gradoLimpio];
+          funcionBase = FUNCIONES_MAYOR[grado] || FUNCIONES_MAYOR[gradoLimpio];
         } else if (tipoEscala === 'minor') {
-          funcionBase = this.funcionesMenor[grado] || this.funcionesMenor[gradoLimpio];
+          funcionBase = FUNCIONES_MENOR[grado] || FUNCIONES_MENOR[gradoLimpio];
         } 
         
         // 2. Generador dinámico para Modos Griegos y otras escalas
+       
         if (!funcionBase) {
-          // Extraemos el grado exacto (Ej: 'BII', '#IV', 'V')
           const numeroRomano = grado.match(/^[b#]*[IV]+/i)?.[0].toUpperCase() || '';
+          const resultadoModal = obtenerFuncionModalDinamica(numeroRomano, tipoEscala, tonica);
           
-          switch (numeroRomano) {
-            case 'I': 
-              funcionBase = 'Tónica Modal'; 
-              textoExplicacion = `Acorde de reposo principal del modo ${tipoEscala}.`;
-              break;
-              
-            case 'II': 
-            case 'BII': // Frigio / Locrio
-            case '#II': 
-              funcionBase = 'Supertónica Modal (Aproximación)'; 
-              textoExplicacion = `Genera un movimiento de alejamiento o aproximación preparatoria en el contexto del modo ${tipoEscala}.`;
-              break;
-              
-            case 'III': 
-            case 'BIII': // Dórico / Frigio / Eólico / Locrio
-              funcionBase = 'Mediante Modal'; 
-              textoExplicacion = `Comparte notas clave con la tónica, funcionando como un puente armónico con color característico.`;
-              break;
-              
-            case 'IV': 
-            case '#IV': // Lidio
-              funcionBase = 'Subdominante Modal'; 
-              textoExplicacion = `Polo opuesto a la tónica que genera un contraste o suspensión armónica típica del modo ${tipoEscala}.`;
-              break;
-              
-            case 'V': 
-            case 'BV': // Locrio
-              funcionBase = 'Dominante Modal / Tensión'; 
-              textoExplicacion = `Acorde de tensión característica del modo ${tipoEscala}. En muchos modos carece de función resolutiva fuerte, aportando un color flotante.`;
-              break;
-              
-            case 'VI': 
-            case 'BVI': // Eólico / Frigio / Locrio
-              funcionBase = 'Submediante Modal'; 
-              textoExplicacion = `Punto de tensión intermedia o resolución engañosa dentro del ecosistema modal.`;
-              break;
-              
-            case 'VII': 
-            case 'BVII': // Mixolidio / Dórico / Eólico / Frigio / Locrio
-              funcionBase = 'Subtónica / Sensible Modal'; 
-              textoExplicacion = `Grado que empuja hacia el reinicio del ciclo armónico, aportando la cadencia insignia del modo ${tipoEscala}.`;
-              break;
-              
-            default:
-              funcionBase = 'Acorde Diatónico';
-              textoExplicacion = `Estructura natural derivada de la escala de ${tonica} ${tipoEscala}.`;
-          }
+          funcionBase = resultadoModal.funcion;
+          textoExplicacion = resultadoModal.explicacion;
         }
       }
       else {
-        // B) ¿ES UN DOMINANTE O SUSTITUTO TRITONAL?
+       // B) ¿ES UN DOMINANTE O SUSTITUTO TRITONAL?
         const isDominant = dataAcorde.aliases.includes('7') || dataAcorde.aliases.includes('dom7');
-        const rootRomanExact = grado.match(/^[b#]*[IV]+/i)?.[0] || ''; 
+        const rootRomanExact = grado.match(/^[b#]*[IV]+/i)?.[0].toUpperCase() || ''; 
           
-        
+        // --- NUEVO: ¿LA RAÍZ DEL ACORDE ES DIATÓNICA? ---
+       const esRaizDiatonica = calcularRaizDiatonica(dataAcorde.tonic, tonica, tipoEscala);
+
         // --- CORRECCIÓN 1: DOMINANTE PRINCIPAL EN MODO MENOR ---
         if (tipoEscala === 'minor' && (rootRomanExact === 'V' || rootRomanExact === 'v') && isDominant) {
           funcionBase = 'Dominante Principal (Armónica)';
           textoExplicacion = 'Acorde dominante derivado de la escala menor armónica. Su alteración (la sensible) genera una fuerte atracción resolutiva hacia la tónica menor.';
         }
-        else if (rootRomanExact === 'bVII' && isDominant) {
-     
-          funcionBase = 'Sustituto Tritonal (SubV7)'; // <- ¡Esto cubre el Db7 de tu imagen!
-          textoExplicacion = 'Acorde dominante que sustituye al V7 diatónico compartiendo el mismo tritono. Resuelve descendiendo un semitono.';
-        }
         else if (isDominant) {
-          funcionBase = 'Dominante Secundario / Alterado';
-          textoExplicacion = 'Acorde dominante ajeno a la escala. Genera tensión direccional hacia un grado específico.';
-        } 
-        else {
-          
-        // C) INTERCAMBIO MODAL DINÁMICO UNIVERSAL (MÚLTIPLES ESCALAS)
- 
-          // 1. Agregamos las escalas simétricas al radar
-          const todasLasEscalasParalelas = [
-            'major', 'minor', 'dorian', 'phrygian', 'lydian', 'mixolydian', 'locrian', 
-            'harmonic minor', 'melodic minor',
-            'diminished',             // <-- Escala octatónica (Tono-Semitono)
-            'half-whole diminished'   // <-- Escala octatónica (Semitono-Tono)
-          ];
-          
-          const modosParaRevisar = todasLasEscalasParalelas.filter(modo => modo !== tipoEscala);
-          
-          let modosEncontrados: string[] = [];
-
-          for (const modo of modosParaRevisar) {
-            if (this.acordePerteneceAEscala(nombreAcorde, tonica, modo)) {
-              modosEncontrados.push(modo);
-            }
+          // --- SEPARACIÓN BERKLEE: Raíz Diatónica vs Raíz Cromática ---
+          if (esRaizDiatonica) {
+            funcionBase = 'Dominante Secundario';
+            textoExplicacion = 'Acorde dominante construido sobre una fundamental diatónica a la escala. Genera tensión direccional hacia otro grado de la tonalidad.';
+          } else {
+            funcionBase = 'Dominante Cromático / Posible SubV7';
+            textoExplicacion = 'Acorde dominante construido sobre una raíz ajena a la escala. Tiende a funcionar como sustituto tritonal resolviendo un semitono hacia abajo, o como puente cromático.';
           }
+        }
+        
+        // C) INTERCAMBIO MODAL DINÁMICO UNIVERSAL (MÚLTIPLES ESCALAS)
+        // (Se removió el 'else' para que se evalúe SIEMPRE y se acumule a los dominantes)
+        // 1. Agregamos las escalas simétricas al radar
+        const modosParaRevisar = ESCALAS_PARALELAS.filter(modo => modo !== tipoEscala);
+          
+        let modosEncontrados: string[] = [];
+
+        for (const modo of modosParaRevisar) {
+          if (acordePerteneceAEscala(nombreAcorde, tonica, modo)) {
+            modosEncontrados.push(modo);
+          }
+        }
 
         const esAcordeDisminuido = dataAcorde.quality === 'Diminished' || dataAcorde.aliases.includes('dim7');
 
-          if (modosEncontrados.length > 0) {
-            const traductorNombres: { [key: string]: string } = { 
-              'major': 'Mayor', 'minor': 'Menor', 'dorian': 'Dórico', 
-              'phrygian': 'Frigio', 'lydian': 'Lidio', 'mixolydian': 'Mixolidio', 
-              'locrian': 'Locrio', 'harmonic minor': 'Menor Arm.', 'melodic minor': 'Menor Mel.',
-              'diminished': 'Disminuida T-S', 'half-whole diminished': 'Disminuida S-T'
-            };
+        if (modosEncontrados.length > 0) {
+     
             
-            const nombresEspanol = modosEncontrados
-              .slice(0, 5) 
-              .map(modo => traductorNombres[modo] || modo);
+          const nombresEspanol = modosEncontrados
+            .slice(0, 5) 
+            .map(modo => TRADUCTOR_NOMBRES_MODOS[modo] || modo);
             
-            // Si el acorde ES disminuido Y proviene de la escala disminuida
-            if (esAcordeDisminuido && modosEncontrados.some(m => m.includes('diminished'))) {
-              const nombresUnidos = nombresEspanol.join(' / ');
-              funcionBase = `Acorde de Paso Disminuido (${nombresUnidos})`;
-              textoExplicacion = `Estructura simétrica (${nombresUnidos}). Actúa frecuentemente como un puente cromático de máxima tensión con doble tritono (si es dim7) para conectar acordes diatónicos.`;
-            } 
-         
-        // Si es un acorde normal (Mayor/Menor)
-            else {
-              const nombresFiltrados = nombresEspanol.filter(n => !n.includes('Disminuida'));
-             // 2. SOLO si quedaron nombres después de filtrar, asignamos la función
-              if (nombresFiltrados.length > 0) {
-                const nombresSinDisminuida = nombresFiltrados.join(' / ');
-                funcionBase = `Intercambio Modal (${nombresSinDisminuida})`;
-                textoExplicacion = `Acorde cuyas notas encajan perfectamente en los modos paralelos: ${nombresSinDisminuida}. Introduce un color ajeno a la escala original aportando variedad armónica sin perder la estabilidad del centro tonal.`;
+          // Si el acorde ES disminuido Y proviene de la escala disminuida
+          if (esAcordeDisminuido && modosEncontrados.some(m => m.includes('diminished'))) {
+            const nombresUnidos = nombresEspanol.join(' / ');
+            const funcDis = `Acorde de Paso Disminuido (${nombresUnidos})`;
+            const expDis = `Estructura simétrica (${nombresUnidos}). Actúa frecuentemente como un puente cromático de máxima tensión con doble tritono (si es dim7) para conectar acordes diatónicos.`;
+            
+            // LÓGICA DE ACUMULACIÓN
+            if (funcionBase) {
+              funcionBase += ` / ${funcDis}`;
+              textoExplicacion += ` ${expDis}`;
+            } else {
+              funcionBase = funcDis;
+              textoExplicacion = expDis;
+            }
+          } 
+          
+          // Si es un acorde normal (Mayor/Menor/Dominante)
+          else {
+            const nombresFiltrados = nombresEspanol.filter(n => !n.includes('Disminuida'));
+            // 2. SOLO si quedaron nombres después de filtrar, asignamos la función
+            if (nombresFiltrados.length > 0) {
+              const nombresSinDisminuida = nombresFiltrados.join(' / ');
+              const funcMod = `Intercambio Modal (${nombresSinDisminuida})`;
+              const expMod = `Acorde cuyas notas encajan perfectamente en los modos paralelos: ${nombresSinDisminuida}. Introduce un color ajeno a la escala original aportando variedad armónica sin perder la estabilidad del centro tonal.`;
+              
+              // LÓGICA DE ACUMULACIÓN
+              if (funcionBase) {
+                funcionBase += ` + ${funcMod}`;
+                textoExplicacion += ` ${expMod}`;
+              } else {
+                funcionBase = funcMod;
+                textoExplicacion = expMod;
               }
             }
           }
- 
-           // D) MEDIANTES CROMÁTICAS (Solo si falló el intercambio modal diatónico/paralelo)
-          // Usamos !funcionBase para asegurarnos de que no pise el Intercambio Modal
-          if (!funcionBase && (rootRomanExact === 'III' || rootRomanExact === 'VI' || rootRomanExact === 'bIII' || rootRomanExact === 'bVI') && (dataAcorde.quality === 'Major' || dataAcorde.quality === 'Minor')) {
-            funcionBase = `Mediante Cromática (${rootRomanExact.toUpperCase()})`;
-            textoExplicacion = 'Acorde a distancia de tercera respecto a la tónica que no pertenece a modos paralelos directos. Produce un contraste cromático dramático.';
-          }
-          // E) FALLBACK (Si todo falla, es un mero paso cromático)
-          if(!funcionBase) {
-            funcionBase = 'Cromatismo / Acorde de Paso';
-            textoExplicacion = 'Variación cromática transitoria que actúa como puente lineal.';
-          }
+        }
+
+        // D) MEDIANTES CROMÁTICAS (Solo si falló el intercambio modal diatónico/paralelo)
+        // Usamos !funcionBase para asegurarnos de que no pise las reglas anteriores
+        if (!funcionBase && (rootRomanExact === 'III' || rootRomanExact === 'VI' || rootRomanExact === 'bIII' || rootRomanExact === 'bVI') && (dataAcorde.quality === 'Major' || dataAcorde.quality === 'Minor')) {
+          funcionBase = `Mediante Cromática (${rootRomanExact.toUpperCase()})`;
+          textoExplicacion = 'Acorde a distancia de tercera respecto a la tónica que no pertenece a modos paralelos directos. Produce un contraste cromático dramático.';
+        }
+        
+        // E) FALLBACK (Si todo falla, es un mero paso cromático)
+        if(!funcionBase) {
+          funcionBase = 'Cromatismo / Acorde de Paso';
+          textoExplicacion = 'Variación cromática transitoria que actúa como puente lineal.';
         }
       }
 
@@ -286,29 +217,79 @@ analizarProgresionContextual(progresion: string[], tonica: string, tipoEscala: s
         observacionesAcorde.push(`Punto Pedal: La nota del bajo (${bajoActual}) se mantiene estática mientras la armonía superior cambia a ${nombreAcorde}.`);
         textoExplicacion += ` Además, descansa sobre un pedal de ${bajoActual}, un recurso (ostinato) que ancla la sonoridad, suspende la sensación de movimiento y unifica la progresión.`;
       }
-      // 1.6 EVALUAR LINE CLICHÉ Y BAJOS CROMÁTICOS 
-      if (bajoActual && memoria.bajoAnterior && memoria.raizAbsolutaAnterior) {
-        const chromaBajoActual = Note.chroma(bajoActual);
-        const chromaBajoAnterior = Note.chroma(memoria.bajoAnterior);
+      // 1.6 EVALUAR LINE CLICHÉ (EN CUALQUIER VOZ) Y BAJOS CROMÁTICOS 
+      if (memoria.raizAbsolutaAnterior && dataAcorde.tonic) {
         
-        if (chromaBajoActual !== undefined && chromaBajoAnterior !== undefined) {
-          const diffBajo = (chromaBajoActual - chromaBajoAnterior + 12) % 12;
+        // A) ¿LA FUNDAMENTAL SE MANTUVO? (Condición principal para Line Cliché)
+        if (dataAcorde.tonic === memoria.raizAbsolutaAnterior) {
           
-          // Si el bajo se mueve exactamente un semitono hacia arriba (1) o hacia abajo (11)
-          if (diffBajo === 1 || diffBajo === 11) {
-            const direccion = diffBajo === 1 ? 'ascendente' : 'descendente';
+          const acordeAnterior = Chord.get(memoria.cifradoAnterior || '');
+          // Extraemos los chromas (0-11) de todas las notas de ambos acordes
+          const chromasAnteriores = acordeAnterior.notes.map(n => Note.chroma(n)).filter(n => n !== undefined) as number[];
+          const chromasActuales = dataAcorde.notes.map(n => Note.chroma(n)).filter(n => n !== undefined) as number[];
+
+          let hayMovimientoCromatico = false;
+          let direccionLinea = '';
+
+          // Comparamos cada nota del acorde anterior con el actual
+          for (const cAnt of chromasAnteriores) {
+            for (const cAct of chromasActuales) {
+              if (cAnt === cAct) continue; // Ignoramos las notas que no se movieron
+
+              const diff = (cAct - cAnt + 12) % 12;
+              if (diff === 1) { // Sube medio tono
+                hayMovimientoCromatico = true;
+                direccionLinea = 'ascendente';
+                break;
+              } else if (diff === 11) { // Baja medio tono
+                hayMovimientoCromatico = true;
+                direccionLinea = 'descendente';
+                break;
+              }
+            }
+            if (hayMovimientoCromatico) break;
+          }
+
+          // Verificamos si, por casualidad, el movimiento ocurrió específicamente en el bajo
+          let esEnElBajo = false;
+          if (bajoActual && memoria.bajoAnterior) {
+            const chBajoAct = Note.chroma(bajoActual);
+            const chBajoAnt = Note.chroma(memoria.bajoAnterior);
+            if (chBajoAct !== undefined && chBajoAnt !== undefined) {
+              const diffBajo = (chBajoAct - chBajoAnt + 12) % 12;
+              if (diffBajo === 1 || diffBajo === 11) {
+                hayMovimientoCromatico = true;
+                esEnElBajo = true;
+                direccionLinea = diffBajo === 1 ? 'ascendente' : 'descendente';
+              }
+            }
+          }
+
+          // Si detectamos el movimiento (ya sea en el bajo o en una voz interna)
+          if (hayMovimientoCromatico) {
+            funcionBase = 'Line Cliché'; 
+            const voz = esEnElBajo ? 'el bajo' : 'una voz interna';
+            textoExplicacion = `La fundamental se mantiene en ${dataAcorde.tonic}, pero ${voz} hace un movimiento cromático ${direccionLinea}. Crea un hilo conductor cinemático.`;
+            observacionesAcorde.push(`Línea cromática ${direccionLinea} detectada en ${voz}.`);
+          }
+        } 
+        
+        // B) LA FUNDAMENTAL CAMBIÓ (Solo evaluamos si el bajo conectó cromáticamente como puente)
+        else if (bajoActual && memoria.bajoAnterior) {
+          const chromaBajoActual = Note.chroma(bajoActual);
+          const chromaBajoAnterior = Note.chroma(memoria.bajoAnterior);
+          
+          if (chromaBajoActual !== undefined && chromaBajoAnterior !== undefined) {
+            const diffBajo = (chromaBajoActual - chromaBajoAnterior + 12) % 12;
             
-            // Si la fundamental se mantuvo igual (Ej: Am -> AmMaj7/G#), es un Line Cliché puro
-            if (dataAcorde.tonic === memoria.raizAbsolutaAnterior) {
-              // SOBREESCRIBIMOS LA FUNCIÓN PARA QUE SALGA EN LA TARJETA VISUAL
-              funcionBase = 'Line Cliché'; 
-              textoExplicacion = `La raíz se mantiene en ${dataAcorde.tonic}, pero el bajo hace un movimiento cromático ${direccion} de ${memoria.bajoAnterior} a ${bajoActual}. Crea un hilo conductor cinemático.`;
-              observacionesAcorde.push(`Línea descendente detectada.`);
-            } 
-            // Si la fundamental cambió, es solo un puente cromático de bajos
-            else if (funcionBase === 'Cromatismo / Acorde de Paso') {
-              funcionBase = `Bajo Cromático (${direccion})`;
-              textoExplicacion = `Conducción de voces por semitono desde el bajo ${memoria.bajoAnterior} hacia ${bajoActual}.`;
+            // Si el bajo sube o baja medio tono exacto
+            if (diffBajo === 1 || diffBajo === 11) {
+              const direccion = diffBajo === 1 ? 'ascendente' : 'descendente';
+              
+              if (funcionBase === 'Cromatismo / Acorde de Paso') {
+                funcionBase = `Bajo Cromático (${direccion})`;
+                textoExplicacion = `Conducción de voces por semitono desde el bajo ${memoria.bajoAnterior} hacia ${bajoActual}.`;
+              }
             }
           }
         }
@@ -369,52 +350,54 @@ analizarProgresionContextual(progresion: string[], tonica: string, tipoEscala: s
               }
             }
            // --- RUTA ORIGINAL PARA LOS DOMINANTES ---
+           // --- NUEVA RUTA PARA LOS DOMINANTES (Incluye Resolución Engañosa) ---
             else {
-              // Invertimos la resta para medir el salto desde el dominante hacia el objetivo
               const diff = (chromaAnterior - chromaActual + 12) % 12;
 
+              // 1. RESOLUCIÓN NATURAL (Cae una 5ta Justa / 7 semitonos)
               if (diff === 7) {
-                // 7 semitonos hacia abajo = Resolución a 4ta justa (Ej: G7 -> C o V/VII)
-                const chromaDestino = Note.chroma(dataAcorde.tonic);
-                const chromaTonica = Note.chroma(tonica);
+                const esCualidadEsperada = acordePerteneceAEscala(nombreAcorde, tonica, tipoEscala);
                 
-                const resuelveAVII = chromaDestino !== undefined && chromaTonica !== undefined 
-                  ? (chromaDestino - chromaTonica + 12) % 12 === 11 
-                  : false;
-
-                if (resuelveAVII) {
-                  observacionesAcorde.push(`Resolución de V/VII: El ${memoria.cifradoAnterior} resolvió hacia el acorde de sensible (${nombreAcorde}).`);
-                  if (memoria.indiceAnterior !== null) {
-                    resultado[memoria.indiceAnterior].funcionDiatonica = `Dominante del VII (Resuelve a ${nombreAcorde})`;
-                    resultado[memoria.indiceAnterior].explicacion = 'Dominante secundario que enfoca su tensión sobre el séptimo grado de la escala. Aunque resuelve a una estructura inestable, opera bajo la misma tensión de quinta.';
-                  }
-                } else {
-                  observacionesAcorde.push(`Resolución Natural: El ${memoria.cifradoAnterior} resolvió a una 4ta justa hacia el ${nombreAcorde}.`);
-                  if (memoria.indiceAnterior !== null && resultado[memoria.indiceAnterior].funcionDiatonica.includes('Dominante')) {
+                if (memoria.indiceAnterior !== null) {
+                  if (!esCualidadEsperada) {
+                    observacionesAcorde.push(`Resolución Inesperada: El ${memoria.cifradoAnterior} resolvió a la raíz correcta, pero la cualidad de ${nombreAcorde} está alterada.`);
+                    resultado[memoria.indiceAnterior].funcionDiatonica = `Dominante Secundario (Resolución Inesperada a ${nombreAcorde})`;
+                    resultado[memoria.indiceAnterior].explicacion = `Resolvió hacia la fundamental esperada, pero la cualidad del acorde de destino no es diatónica (Ej: dominantes en cadena o cambio modal).`;
+                  } else {
+                    observacionesAcorde.push(`Resolución Natural: El ${memoria.cifradoAnterior} resolvió a una 4ta justa hacia el ${nombreAcorde}.`);
                     resultado[memoria.indiceAnterior].funcionDiatonica += ` (Resolvió a ${nombreAcorde})`;
                   }
                 }
               }
-              else if (diff === 10) { 
-                // ¡CORREGIDO! 10 semitonos hacia abajo (equivale a subir 1 tono entero) = ¡El verdadero Backdoor Dominant! (Ej: Bb7 -> C)
-                observacionesAcorde.push(`Resolución de Backdoor Dominant: El ${memoria.cifradoAnterior} resolvió hacia el ${nombreAcorde} mediante una sustitución de subdominante menor.`);
+              // 2. RESOLUCIÓN ENGAÑOSA O BACKDOOR (Sube 1 semitono [diff 11] o 1 tono [diff 10])
+              else if (diff === 11 || diff === 10) {
+                const esBackdoor = diff === 10 && memoria.gradoAnterior?.toUpperCase().includes('BVII');
                 
-                if (memoria.indiceAnterior !== null) {
-                  resultado[memoria.indiceAnterior].funcionDiatonica = `Backdoor Dominant (Resolvió a ${nombreAcorde})`;
-                  resultado[memoria.indiceAnterior].explicacion = 'Acorde dominante construido sobre el séptimo grado bemol (bVII7). Aunque tiene estructura de dominante, funciona armónicamente como una subdominante menor que sube un tono para resolver a la tónica, aportando un color sofisticado.';
+                if (esBackdoor) {
+                  observacionesAcorde.push(`Resolución Backdoor: El ${memoria.cifradoAnterior} subió un tono entero hacia el ${nombreAcorde}.`);
+                  if (memoria.indiceAnterior !== null) {
+                    resultado[memoria.indiceAnterior].funcionDiatonica = `Backdoor Dominant (Resolvió a ${nombreAcorde})`;
+                    resultado[memoria.indiceAnterior].explicacion = 'Acorde dominante construido sobre el séptimo grado bemol. Funciona como una subdominante menor que sube un tono para resolver a la tónica.';
+                  }
+                } else {
+                  observacionesAcorde.push(`Resolución Engañosa (Deceptive): El ${memoria.cifradoAnterior} ascendió hacia el ${nombreAcorde} en lugar de caer una 5ta.`);
+                  if (memoria.indiceAnterior !== null) {
+                    resultado[memoria.indiceAnterior].funcionDiatonica = `Dominante Secundario (Resolución Engañosa a ${nombreAcorde})`;
+                    resultado[memoria.indiceAnterior].explicacion = `Creó una expectativa de resolución descendente, pero realizó un gesto engañoso ascendiendo hacia ${nombreAcorde} (Deceptive Cadence).`;
+                  }
                 }
               }
+              // 3. SUSTITUTO TRITONAL (Cae 1 semitono [diff 1])
               else if (diff === 1) {
-                // 1 semitono hacia abajo = Sustituto Tritonal / SubV7 (Ej: Db7 -> C)
-                observacionesAcorde.push(`Resolución de SubV7: El ${memoria.cifradoAnterior} resolvió cromáticamente hacia el ${nombreAcorde}.`);
-                
+                observacionesAcorde.push(`Resolución SubV7: El ${memoria.cifradoAnterior} resolvió cromáticamente hacia abajo al ${nombreAcorde}.`);
                 if (memoria.indiceAnterior !== null) {
                   resultado[memoria.indiceAnterior].funcionDiatonica = `Sustituto Tritonal (Resolvió a ${nombreAcorde})`;
-                  resultado[memoria.indiceAnterior].explicacion = 'Acorde dominante no diatónico que sustituye a un dominante convencional al compartir el tritono y descender un semitono.';
+                  resultado[memoria.indiceAnterior].explicacion = 'Sustituye a un dominante convencional al compartir su tritono, resolviendo con suavidad descendiendo medio tono.';
                 }
               } 
+              // 4. TENSION ESTÁTICA
               else {
-                observacionesAcorde.push(`Resolución Engañosa: El ${memoria.cifradoAnterior} interrumpió su tensión de dominante.`);
+                observacionesAcorde.push(`Tensión Estática: El ${memoria.cifradoAnterior} no resolvió de manera funcional hacia el ${nombreAcorde}.`);
               }
             }
           }
@@ -438,6 +421,30 @@ analizarProgresionContextual(progresion: string[], tonica: string, tipoEscala: s
         memoria.raizAnterior = dataAcorde.tonic || null;
       }
 
+      // =========================================================================
+      // AVISOS DE ORQUESTACIÓN Y TENSIONES (NOTAS DE CUIDADO)
+      // =========================================================================
+      const advertenciasAcorde: string[] = [];
+      const intervalos = dataAcorde.intervals || [];
+
+      // A) Choque de semitono (b9 interval interno)
+      if (intervalos.includes('3M') && intervalos.includes('4P')) {
+        advertenciasAcorde.push('Tensión de Cuidado: La 11va (4P) choca a medio tono con la 3ra Mayor. Considera usar #11 (Lidio) o tratarla como nota de paso corta.');
+      }
+      if (intervalos.includes('3m') && intervalos.includes('2m')) {
+        advertenciasAcorde.push('Tensión de Cuidado: La b9 (2m) choca a medio tono con la raíz o la 3ra menor. Genera una sonoridad muy oscura y disonante.');
+      }
+
+      // B) Mutación Funcional
+      if ((gradoLimpio.toUpperCase() === 'I' || gradoLimpio.toUpperCase() === 'IV') && intervalos.includes('7m') && intervalos.includes('3M')) {
+        advertenciasAcorde.push('Mutación Funcional: La 7ma menor ha convertido este acorde estable en un Dominante. Buscará resolver mediante su tritono.');
+      }
+
+      // C) Falta de Tercera
+      if (!intervalos.includes('3M') && !intervalos.includes('3m') && !nombreAcorde.includes('sus')) {
+         advertenciasAcorde.push('Ambigüedad: Acorde sin tercera (Power Chord o clúster). Su función modal queda indefinida al no ser mayor ni menor.');
+      }
+
    
       const analisisActual: AnalisisAcorde = {
         cifrado: nombreAcorde,
@@ -446,7 +453,8 @@ analizarProgresionContextual(progresion: string[], tonica: string, tipoEscala: s
         notas: dataAcorde.notes,
         intervalos: dataAcorde.intervals,
         explicacion: textoExplicacion,
-        observaciones: observacionesAcorde
+        observaciones: observacionesAcorde,
+        advertencias: advertenciasAcorde
       };
 
       memoria.cifradoAnterior = nombreAcorde;
@@ -512,7 +520,7 @@ analizarProgresionContextual(progresion: string[], tonica: string, tipoEscala: s
         const noEsCuartal = !resultado[i].funcionDiatonica.includes('Cuartal'); 
 
         // NUEVO: Verificamos que el acorde actual NO sea diatónico a la escala base
-        const noEsDiatonico = !this.acordePerteneceAEscala(resultado[i].cifrado, tonica, tipoEscala);
+        const noEsDiatonico = !acordePerteneceAEscala(resultado[i].cifrado, tonica, tipoEscala);
 
         // La constante solo es válida si cumple las reglas de paralelismo Y además es ajeno a la escala
         const esConstante = esValido && esMismoTipo && esRaizDiferente && noEsCuartal && noEsDiatonico;
@@ -549,7 +557,7 @@ analizarProgresionContextual(progresion: string[], tonica: string, tipoEscala: s
         if (esSaltoQuinta) rachaExtendido++;
 
         if (!esSaltoQuinta || i === resultado.length - 1) {
-          if (rachaExtendido >= 2) {
+          if (rachaExtendido >= 3) {
             const fin = esSaltoQuinta ? i : i - 1;
             const inicio = fin - rachaExtendido + 1;
             pintarRacha(inicio, fin, 'extendido');
@@ -557,7 +565,49 @@ analizarProgresionContextual(progresion: string[], tonica: string, tipoEscala: s
           rachaExtendido = 1;
         }
       }
+
+      // =========================================================================
+      // 5. ESCÁNER DE CADENCIAS FINALES DE FRASE (Berklee)
+      // =========================================================================
+      const n = resultado.length;
+      if (n >= 2) {
+        const ultimo = resultado[n - 1];
+        const penultimo = resultado[n - 2];
+        const antepenultimo = n >= 3 ? resultado[n - 3] : null;
+
+        const grUltimo = ultimo.gradoRomano.match(/^[b#]*[IV]+/i)?.[0].toUpperCase() || '';
+        const grPenultimo = penultimo.gradoRomano.match(/^[b#]*[IV]+/i)?.[0].toUpperCase() || '';
+        const grAnte = antepenultimo ? antepenultimo.gradoRomano.match(/^[b#]*[IV]+/i)?.[0].toUpperCase() || '' : '';
+
+        const ultimoEsI = grUltimo === 'I';
+        const ultimoEsV = grUltimo === 'V' && ultimo.cifrado.includes('7');
+        const ultimoEsVI = (grUltimo === 'VI' || grUltimo === 'BVI') && ultimo.cifrado.includes('m');
+        
+        const penultimoEsV7 = grPenultimo === 'V' && penultimo.cifrado.includes('7');
+        const penultimoEsIV = grPenultimo === 'IV';
+        const penultimoEsII = grPenultimo === 'II';
+        const anteEsII = grAnte === 'II';
+
+        let cadenciaDetectada = '';
+
+        if (ultimoEsI && penultimoEsV7) {
+          cadenciaDetectada = (antepenultimo && anteEsII) ? 'Full Jazz Cadence (II-V-I)' : 'Full Dominant Cadence (V-I)';
+        } else if (ultimoEsV) {
+          cadenciaDetectada = penultimoEsII ? 'Jazz Half Cadence (II-V)' : 'Half Cadence (Termina en Dominante)';
+        } else if (ultimoEsI && (penultimoEsIV || penultimoEsII)) {
+          cadenciaDetectada = 'Subdominant / Plagal Cadence';
+        } else if (grUltimo === 'IV' || (grUltimo === 'II' && ultimo.cifrado.includes('m'))) {
+          cadenciaDetectada = 'Incomplete Subdominant Cadence';
+        } else if (penultimoEsV7 && ultimoEsVI) {
+          cadenciaDetectada = 'Deceptive Cadence (V-VI)';
+        }
+
+        if (cadenciaDetectada) {
+          ultimo.observaciones.push(`Cadencia Final: La frase concluye con una ${cadenciaDetectada}.`);
+        }
+      }
       // RESULTADO FINAL
+      //PatternEngine.detectarBloquesIIV(resultado);
 
     this.resultadosSource.next(resultado);
     return resultado;
